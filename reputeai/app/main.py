@@ -4,6 +4,8 @@ from slowapi.middleware import SlowAPIMiddleware
 
 from .api.auth import router as auth_router
 from .api.users import router as users_router
+from .api.integrations import router as integrations_router
+from .api.orgs import router as orgs_router
 from .core.config import settings
 from .core.logging import configure_logging
 from .core.rate_limit import limiter
@@ -23,6 +25,8 @@ app.add_middleware(
 
 app.include_router(auth_router)
 app.include_router(users_router)
+app.include_router(integrations_router)
+app.include_router(orgs_router)
 
 
 @app.get("/health")

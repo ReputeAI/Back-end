@@ -32,6 +32,7 @@ class Settings(BaseSettings):
     stripe_secret_key: str | None = None
     stripe_public_key: str | None = None
     openai_api_key: str | None = None
+    oauth_encryption_key: str = "dev_secret_key"
 
     class Config:
         env_file = ".env"
