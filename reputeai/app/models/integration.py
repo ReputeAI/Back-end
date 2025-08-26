@@ -15,5 +15,5 @@ class Integration(Base):
     access_token = Column(String, nullable=False)
     refresh_token = Column(String, nullable=True)
     expires_at = Column(DateTime, nullable=True)
-    metadata = Column(JSON, nullable=True)
+    meta = Column("metadata", JSON, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)

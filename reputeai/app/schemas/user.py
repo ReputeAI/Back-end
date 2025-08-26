@@ -1,10 +1,10 @@
-from pydantic import BaseModel, ConfigDict, EmailStr
+from pydantic import BaseModel, ConfigDict
 
 from ..models.membership import OrgRole
 
 
 class UserCreate(BaseModel):
-    email: EmailStr
+    email: str
     password: str
 
 
@@ -17,7 +17,7 @@ class Membership(BaseModel):
 
 class User(BaseModel):
     id: int
-    email: EmailStr
+    email: str
     is_verified: bool = False
 
     model_config = ConfigDict(from_attributes=True)

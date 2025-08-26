@@ -11,8 +11,8 @@ from ..core.security import encrypt_token
 router = APIRouter(prefix="/integrations")
 
 
-@router.get("/")
-def list_integrations(db: Session = Depends(get_db)) -> list[Integration]:
+@router.get("/", response_model=None)
+def list_integrations(db: Session = Depends(get_db)):
     return db.query(Integration).all()
 
 
@@ -36,7 +36,7 @@ def oauth_callback(
             access_token=encrypt_token(token_data["access_token"]),
             refresh_token=encrypt_token(token_data.get("refresh_token", "")),
             expires_at=token_data.get("expires_at", datetime.utcnow()),
-            metadata=token_data.get("metadata", {}),
+            meta=token_data.get("metadata", {}),
         )
     )
     db.commit()

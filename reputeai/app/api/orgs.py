@@ -28,7 +28,7 @@ def delete_integration(org_id: int, provider: str, db: Session = Depends(get_db)
     return {"status": "deleted"}
 
 
-@router.get("/{org_id}/reviews")
+@router.get("/{org_id}/reviews", response_model=None)
 def list_reviews(
     org_id: int,
     platform: str | None = None,
@@ -39,7 +39,7 @@ def list_reviews(
     page: int = 1,
     size: int = 50,
     db: Session = Depends(get_db),
-) -> list[Review]:
+):
     query = db.query(Review).filter(Review.org_id == org_id)
     if platform:
         query = query.filter(Review.platform == platform)

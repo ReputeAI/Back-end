@@ -10,6 +10,7 @@ dependencies = [
     "alembic",
     "psycopg[binary]",
     "pydantic>=2.0",
+    "pydantic-settings",
     "redis",
     "celery[redis]",
     "httpx",
@@ -19,6 +20,8 @@ dependencies = [
     "structlog",
     "slowapi",
     "tenacity",
+    "openai",
+    "langdetect",
 ]
 
 [project.optional-dependencies]

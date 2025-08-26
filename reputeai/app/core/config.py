@@ -1,4 +1,7 @@
-from pydantic import BaseSettings
+try:
+    from pydantic_settings import BaseSettings
+except Exception:  # pragma: no cover - fallback for missing package
+    from pydantic import BaseModel as BaseSettings  # type: ignore
 
 
 class Settings(BaseSettings):
@@ -32,6 +35,7 @@ class Settings(BaseSettings):
     stripe_secret_key: str | None = None
     stripe_public_key: str | None = None
     openai_api_key: str | None = None
+    openai_model: str = "gpt-3.5-turbo"
     oauth_encryption_key: str = "dev_secret_key"
 
     class Config:
