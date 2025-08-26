@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from uuid import uuid4
 from typing import Tuple
+import base64
 
 from jose import jwt
 from passlib.hash import argon2
@@ -33,3 +34,17 @@ def hash_token(token: str) -> str:
 
 def verify_token_hash(token: str, token_hash: str) -> bool:
     return argon2.verify(token, token_hash)
+
+
+def _xor_bytes(data: bytes, key: bytes) -> bytes:
+    return bytes(b ^ key[i % len(key)] for i, b in enumerate(data))
+
+
+def encrypt_token(token: str) -> str:
+    key = settings.oauth_encryption_key.encode()
+    return base64.urlsafe_b64encode(_xor_bytes(token.encode(), key)).decode()
+
+
+def decrypt_token(token: str) -> str:
+    key = settings.oauth_encryption_key.encode()
+    return _xor_bytes(base64.urlsafe_b64decode(token.encode()), key).decode()
