@@ -1,0 +1,2 @@
+def integrate() -> None:
+    pass
