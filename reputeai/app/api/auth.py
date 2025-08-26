@@ -28,7 +28,6 @@ def _extract_token(
 
 
 @router.post("/register", response_model=TokenPair)
-@limiter.limit("10/minute")
 def register(data: UserCreate, response: Response, db: Session = Depends(get_db)) -> TokenPair:
     user = auth_service.register_user(db, data.email, data.password)
     access, refresh = auth_service.create_tokens(db, user)
@@ -39,7 +38,6 @@ def register(data: UserCreate, response: Response, db: Session = Depends(get_db)
 
 
 @router.post("/login", response_model=TokenPair)
-@limiter.limit("10/minute")
 def login(data: LoginRequest, response: Response, db: Session = Depends(get_db)) -> TokenPair:
     user = auth_service.authenticate(db, data.email, data.password)
     access, refresh = auth_service.create_tokens(db, user)
@@ -50,7 +48,6 @@ def login(data: LoginRequest, response: Response, db: Session = Depends(get_db))
 
 
 @router.post("/refresh", response_model=TokenPair)
-@limiter.limit("10/minute")
 def refresh(
     response: Response,
     refresh_token_cookie: str | None = Cookie(None, alias="refresh_token"),
@@ -68,7 +65,6 @@ def refresh(
 
 
 @router.post("/logout")
-@limiter.limit("10/minute")
 def logout(
     response: Response,
     refresh_token_cookie: str | None = Cookie(None, alias="refresh_token"),
@@ -85,7 +81,6 @@ def logout(
 
 
 @router.post("/verify-email")
-@limiter.limit("10/minute")
 def verify_email(current_user=Depends(get_current_user), db: Session = Depends(get_db)) -> dict:
     current_user.is_verified = True
     db.commit()
@@ -93,24 +88,20 @@ def verify_email(current_user=Depends(get_current_user), db: Session = Depends(g
 
 
 @router.post("/forgot-password")
-@limiter.limit("10/minute")
 def forgot_password() -> dict:
     return {"status": "ok"}
 
 
 @router.post("/reset-password")
-@limiter.limit("10/minute")
 def reset_password() -> dict:
     return {"status": "ok"}
 
 
 @router.get("/oidc/start")
-@limiter.limit("10/minute")
 def oidc_start() -> dict:
     return {"url": "https://accounts.google.com/o/oauth2/v2/auth"}
 
 
 @router.get("/oidc/callback")
-@limiter.limit("10/minute")
 def oidc_callback() -> dict:
     return {"status": "oidc callback"}

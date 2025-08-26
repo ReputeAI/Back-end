@@ -29,4 +29,4 @@ class Review(Base):
     sentiment = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    metadata = Column(JSON, nullable=True)
+    meta = Column("metadata", JSON, nullable=True)
