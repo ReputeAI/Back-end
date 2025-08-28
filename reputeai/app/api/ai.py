@@ -22,7 +22,7 @@ router = APIRouter(prefix="/orgs/{org_id}/ai")
 @router.post("/sentiment", response_model=SentimentResponse)
 def sentiment(org_id: int, body: SentimentRequest, db: Session = Depends(get_db)):
     result = ai_service.analyze_sentiment(body.text)
-    log_usage(db, org_id)
+    log_usage(db, org_id, "ai_suggestions")
     return result
 
 
@@ -45,7 +45,7 @@ def suggest_reply(
         language=body.language or review.lang,
         brand_voice=brand_voice,
     )
-    log_usage(db, org_id)
+    log_usage(db, org_id, "ai_suggestions")
     return SuggestReplyResponse(suggestions=suggestions)
 
 

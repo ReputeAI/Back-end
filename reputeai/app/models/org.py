@@ -8,4 +8,6 @@ class Org(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, unique=True, nullable=False)
+    plan = Column(String, default="FREE", nullable=False)
+    stripe_customer_id = Column(String, index=True, nullable=True)
     settings = Column(JSON, default=dict)
