@@ -7,6 +7,7 @@ from ..db.session import get_db
 from ..models.integration import Integration
 from ..services.integrations import get_provider
 from ..core.security import encrypt_token
+from ..services.usage import log_usage
 
 router = APIRouter(prefix="/integrations")
 
@@ -29,6 +30,13 @@ def oauth_callback(
         raise HTTPException(status_code=404, detail="Unknown provider") from exc
 
     token_data = provider_impl.exchange_code(code)
+    existing = (
+        db.query(Integration)
+        .filter(Integration.org_id == state, Integration.provider == provider)
+        .first()
+    )
+    if not existing:
+        log_usage(db, state, "connected_locations")
     db.merge(
         Integration(
             org_id=state,

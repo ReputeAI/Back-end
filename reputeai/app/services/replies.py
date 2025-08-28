@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from ..models import AuditLog, Integration, Reply, Review
 from .integrations import get_provider
+from .usage import log_usage
 
 
 def create_reply(
@@ -60,6 +61,8 @@ def send_reply(db: Session, org_id: int, review_id: int, user_id: int | None) ->
         raise HTTPException(status_code=400, detail="Integration not found")
     provider = get_provider(review.platform)
     success = False
+    if reply.is_auto:
+        log_usage(db, org_id, "auto_replies")
     try:
         success = provider.post_reply(
             integration.access_token, {"external_id": review.external_id}, reply.text

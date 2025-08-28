@@ -72,6 +72,8 @@ def fetch_reviews(org_id: int, provider: str) -> int:
                 )
                 saved += 1
         db.commit()
+        if saved:
+            log_usage(db, org_id, "reviews_fetched", saved)
         return saved
 
 
@@ -96,5 +98,5 @@ def batch_generate_replies(org_id: int, review_ids: list[int]) -> dict[int, list
                 brand_voice=brand_voice,
             )
             results[review_id] = suggestions
-            log_usage(db, org_id)
+            log_usage(db, org_id, "ai_suggestions")
     return results

@@ -6,3 +6,4 @@ from .integration import Integration
 from .review import Review
 from .reply import Reply
 from .audit_log import AuditLog
+from .usage import Usage
