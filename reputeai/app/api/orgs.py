@@ -1,13 +1,20 @@
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, Header, HTTPException
 from sqlalchemy.orm import Session
 
 from ..db.session import get_db
 from ..models.integration import Integration
 from ..models.review import Review
+from ..models.reply import Reply
 from ..services.integrations import get_provider
+from ..services.replies import create_reply, send_reply
 from ..workers.tasks import fetch_reviews
+from ..schemas.reply import ReplyCreate, ReplyOut
+from ..schemas.autoreply import (
+    AutoReplySimulateRequest,
+    AutoReplySimulateResponse,
+)
 
 router = APIRouter(prefix="/orgs")
 
@@ -60,3 +67,46 @@ def refresh_reviews(org_id: int, db: Session = Depends(get_db)) -> dict[str, str
     for integration in integrations:
         fetch_reviews.delay(org_id=org_id, provider=integration.provider)
     return {"status": "enqueued"}
+
+
+@router.post("/{org_id}/reviews/{review_id}/reply", response_model=ReplyOut)
+def create_reply_endpoint(
+    org_id: int,
+    review_id: int,
+    data: ReplyCreate,
+    x_user_id: int | None = Header(None, alias="X-User-Id"),
+    db: Session = Depends(get_db),
+) -> Reply:
+    return create_reply(db, org_id, review_id, data.text, data.is_auto, x_user_id)
+
+
+@router.post("/{org_id}/reviews/{review_id}/send-reply", response_model=ReplyOut)
+def send_reply_endpoint(
+    org_id: int,
+    review_id: int,
+    x_user_id: int | None = Header(None, alias="X-User-Id"),
+    db: Session = Depends(get_db),
+) -> Reply:
+    return send_reply(db, org_id, review_id, x_user_id)
+
+
+@router.get("/{org_id}/replies", response_model=list[ReplyOut])
+def list_replies(org_id: int, review_id: int | None = None, db: Session = Depends(get_db)):
+    query = db.query(Reply).filter(Reply.org_id == org_id)
+    if review_id:
+        query = query.filter(Reply.review_id == review_id)
+    return query.all()
+
+
+@router.post("/{org_id}/autoreply/simulate", response_model=AutoReplySimulateResponse)
+def autoreply_simulate(org_id: int, data: AutoReplySimulateRequest) -> AutoReplySimulateResponse:
+    eligible = True
+    if data.rating < data.min_rating:
+        eligible = False
+    if any(word.lower() in data.text.lower() for word in data.blacklist):
+        eligible = False
+    if not (
+        data.office_hours_start <= data.timestamp.time() <= data.office_hours_end
+    ):
+        eligible = False
+    return AutoReplySimulateResponse(eligible=eligible)

@@ -18,6 +18,9 @@ class Provider(Protocol):
     def fetch_reviews(self, token: str, since: datetime | None = None) -> list[dict[str, Any]]:
         ...
 
+    def post_reply(self, token: str, review: dict[str, Any], text: str) -> bool:
+        ...
+
 
 _providers: dict[str, Provider] = {}
 
@@ -59,6 +62,9 @@ class DummyProvider:
                 "metadata": {},
             }
         ]
+
+    def post_reply(self, token: str, review: dict[str, Any], text: str) -> bool:
+        return self.name == "google"
 
 
 # Register default providers
