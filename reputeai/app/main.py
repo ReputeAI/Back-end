@@ -16,7 +16,14 @@ from .core.rate_limit import limiter
 from .core.middleware import CorrelationIdMiddleware, SecurityHeadersMiddleware
 
 configure_logging()
-app = FastAPI()
+app = FastAPI(
+    title="ReputeAI Backend",
+    description="APIs for auth, tweets, etc.",
+    version="0.1.0",                 # shows in docs
+    docs_url="/docs",                # Swagger UI
+    redoc_url="/redoc",              # ReDoc
+    openapi_url="/openapi.json",     # OpenAPI spec URL
+)
 
 app.state.limiter = limiter
 app.add_middleware(SlowAPIMiddleware)
