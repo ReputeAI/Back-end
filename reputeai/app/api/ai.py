@@ -1,7 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
+from ..core.rate_limit import limiter
 from ..db.session import get_db
+from ..dependencies import get_current_org
 from ..models.org import Org
 from ..models.review import Review
 from ..services import ai as ai_service
@@ -16,28 +18,37 @@ from ..schemas.ai import (
 )
 
 
-router = APIRouter(prefix="/orgs/{org_id}/ai")
+router = APIRouter(prefix="/ai")
 
 
 @router.post("/sentiment", response_model=SentimentResponse)
-def sentiment(org_id: int, body: SentimentRequest, db: Session = Depends(get_db)):
+@limiter.limit("30/minute")
+def sentiment(
+    request: Request,
+    body: SentimentRequest,
+    org: Org = Depends(get_current_org()),
+    db: Session = Depends(get_db),
+):
     result = ai_service.analyze_sentiment(body.text)
-    log_usage(db, org_id, "ai_suggestions")
+    log_usage(db, org.id, "ai_suggestions")
     return result
 
 
 @router.post("/suggest-reply", response_model=SuggestReplyResponse)
+@limiter.limit("30/minute")
 def suggest_reply(
-    org_id: int, body: SuggestReplyRequest, db: Session = Depends(get_db)
+    request: Request,
+    body: SuggestReplyRequest,
+    org: Org = Depends(get_current_org()),
+    db: Session = Depends(get_db),
 ):
     review = (
         db.query(Review)
-        .filter(Review.id == body.review_id, Review.org_id == org_id)
+        .filter(Review.id == body.review_id, Review.org_id == org.id)
         .first()
     )
     if not review:
         raise HTTPException(status_code=404, detail="Review not found")
-    org = db.query(Org).filter(Org.id == org_id).first()
     brand_voice = (org.settings or {}).get("brand_voice", {}) if org else {}
     suggestions = ai_service.suggest_replies(
         review.text,
@@ -45,12 +56,17 @@ def suggest_reply(
         language=body.language or review.lang,
         brand_voice=brand_voice,
     )
-    log_usage(db, org_id, "ai_suggestions")
+    log_usage(db, org.id, "ai_suggestions")
     return SuggestReplyResponse(suggestions=suggestions)
 
 
 @router.post("/batch-suggest")
-def batch_suggest(org_id: int, body: BatchSuggestRequest):
-    task = batch_generate_replies.delay(org_id=org_id, review_ids=body.review_ids)
+@limiter.limit("30/minute")
+def batch_suggest(
+    request: Request,
+    body: BatchSuggestRequest,
+    org: Org = Depends(get_current_org()),
+):
+    task = batch_generate_replies.delay(org_id=org.id, review_ids=body.review_ids)
     return {"job_id": task.id}
 

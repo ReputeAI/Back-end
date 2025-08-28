@@ -13,12 +13,15 @@ from .api.webhooks import router as webhooks_router
 from .core.config import settings
 from .core.logging import configure_logging
 from .core.rate_limit import limiter
+from .core.middleware import CorrelationIdMiddleware, SecurityHeadersMiddleware
 
 configure_logging()
 app = FastAPI()
 
 app.state.limiter = limiter
 app.add_middleware(SlowAPIMiddleware)
+app.add_middleware(CorrelationIdMiddleware)
+app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[settings.frontend_url],

@@ -35,3 +35,11 @@ services:
     env_file: .env.example
     depends_on:
       - redis
+  beat:
+    build: .
+    command: celery -A reputeai.app.workers.celery_app beat --loglevel=info
+    volumes:
+      - ./reputeai:/app/reputeai
+    env_file: .env.example
+    depends_on:
+      - redis
