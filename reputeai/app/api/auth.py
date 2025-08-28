@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Cookie, Depends, Header, HTTPException, Response, status
+from fastapi import APIRouter, Cookie, Depends, Header, HTTPException, Response, Request, status
 from sqlalchemy.orm import Session
 
 from ..core.config import settings
@@ -38,7 +38,13 @@ def register(data: UserCreate, response: Response, db: Session = Depends(get_db)
 
 
 @router.post("/login", response_model=TokenPair)
-def login(data: LoginRequest, response: Response, db: Session = Depends(get_db)) -> TokenPair:
+@limiter.limit("5/minute")
+def login(
+    request: Request,
+    data: LoginRequest,
+    response: Response,
+    db: Session = Depends(get_db),
+) -> TokenPair:
     user = auth_service.authenticate(db, data.email, data.password)
     access, refresh = auth_service.create_tokens(db, user)
     if settings.use_cookies:
